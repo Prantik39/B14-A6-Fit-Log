@@ -3,14 +3,14 @@
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
+import { useWorkoutContext } from "@/context/WorkoutContext";
 
-interface NavbarProps {
-  planCount?: number;
-  savedCount?: number;
-}
-
-export default function Navbar({ planCount = 0, savedCount = 0 }: NavbarProps) {
+export default function Navbar() {
   const pathname = usePathname();
+  const { todayPlan, savedList } = useWorkoutContext();
+
+  const planCount = todayPlan.length;
+  const savedCount = savedList.length;
 
   return (
     <header className="sticky top-0 z-50 w-full border-b border-[#1b1f28] bg-[#0c0e12]/90 backdrop-blur-md">

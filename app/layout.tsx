@@ -4,6 +4,7 @@ import "./globals.css";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import ToastProvider from "@/components/ToastProvider";
+import { WorkoutProvider } from "@/context/WorkoutContext";
 
 const inter = Inter({
   variable: "--font-inter",
@@ -34,10 +35,12 @@ export default function RootLayout({
       className={`${inter.variable} ${oswald.variable} h-full antialiased`}
     >
       <body className="flex min-h-screen flex-col bg-[#0b0d11] font-sans text-zinc-100">
-        <ToastProvider />
-        <Navbar />
-        <div className="flex-1">{children}</div>
-        <Footer />
+        <WorkoutProvider>
+          <ToastProvider />
+          <Navbar />
+          <div className="flex-1">{children}</div>
+          <Footer />
+        </WorkoutProvider>
       </body>
     </html>
   );
