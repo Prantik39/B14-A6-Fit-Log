@@ -1,6 +1,9 @@
 import type { Metadata } from "next";
 import { Inter, Oswald } from "next/font/google";
 import "./globals.css";
+import Navbar from "@/components/Navbar";
+import Footer from "@/components/Footer";
+import ToastProvider from "@/components/ToastProvider";
 
 const inter = Inter({
   variable: "--font-inter",
@@ -19,15 +22,22 @@ export const metadata: Metadata = {
     "A dark, no-nonsense gym companion: pick a lift, lock it into today's plan, and watch the week's work add up.",
 };
 
-export default function RootLayout({ children }: LayoutProps<"/">) {
+export default function RootLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   return (
     <html
       lang="en"
       data-theme="fitlog"
       className={`${inter.variable} ${oswald.variable} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col bg-base-100 font-sans text-base-content">
-        {children}
+      <body className="flex min-h-screen flex-col bg-[#0b0d11] font-sans text-zinc-100">
+        <ToastProvider />
+        <Navbar />
+        <div className="flex-1">{children}</div>
+        <Footer />
       </body>
     </html>
   );
