@@ -1,15 +1,18 @@
 "use client";
 
 import { useState } from "react";
-import Link from "next/link";
-import Image from "next/image";
-import { LuChevronDown, LuClock, LuFlame, LuStar } from "react-icons/lu";
+import { LuChevronDown } from "react-icons/lu";
 import { useWorkoutContext } from "@/context/WorkoutContext";
 import EmptyPlanState from "@/components/EmptyPlanState";
+import PlanWorkoutCard from "@/components/PlanWorkoutCard";
 
 export default function MyPlanPage() {
   const { todayPlan, savedList } = useWorkoutContext();
   const [activeTab, setActiveTab] = useState<"today" | "saved">("today");
+  const [sortBy, setSortBy] = useState<"Duration" | "Calories" | "Rating">(
+    "Duration"
+  );
+  const [isSortOpen, setIsSortOpen] = useState(false);
 
   const totalExercises = todayPlan.length;
   const totalMinutes = todayPlan.reduce(
@@ -22,6 +25,19 @@ export default function MyPlanPage() {
   );
 
   const activeList = activeTab === "today" ? todayPlan : savedList;
+
+  const sortedList = [...activeList].sort((a, b) => {
+    if (sortBy === "Duration") {
+      return (b.duration || 0) - (a.duration || 0);
+    }
+    if (sortBy === "Calories") {
+      return (b.caloriesBurned || 0) - (a.caloriesBurned || 0);
+    }
+    if (sortBy === "Rating") {
+      return (b.rating || 0) - (a.rating || 0);
+    }
+    return 0;
+  });
 
   return (
     <main className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
@@ -85,68 +101,56 @@ export default function MyPlanPage() {
           </button>
         </div>
 
-        <div className="flex items-center gap-2 text-xs text-zinc-400">
+        <div className="relative flex items-center gap-2 text-xs text-zinc-400">
           <span>Sort By</span>
-          <div className="inline-flex items-center gap-1.5 rounded-lg border border-[#1e2430] bg-[#101319] px-3 py-1.5 text-xs font-medium text-zinc-200">
-            <span>Duration</span>
-            <LuChevronDown className="h-3.5 w-3.5 text-zinc-400" />
-          </div>
+          <button
+            type="button"
+            onClick={() => setIsSortOpen((prev) => !prev)}
+            className="inline-flex items-center gap-2 rounded-lg border border-[#1e2430] bg-[#101319] px-3.5 py-1.5 text-xs font-medium text-zinc-200 transition hover:border-[#2e3747]"
+          >
+            <span>{sortBy}</span>
+            <LuChevronDown
+              className={`h-3.5 w-3.5 text-zinc-400 transition ${
+                isSortOpen ? "rotate-180" : ""
+              }`}
+            />
+          </button>
+
+          {isSortOpen && (
+            <div className="absolute right-0 top-full z-20 mt-1 w-32 overflow-hidden rounded-xl border border-[#1e2430] bg-[#12151c] shadow-2xl">
+              {(["Duration", "Calories", "Rating"] as const).map((option) => (
+                <button
+                  key={option}
+                  type="button"
+                  onClick={() => {
+                    setSortBy(option);
+                    setIsSortOpen(false);
+                  }}
+                  className={`block w-full px-3 py-2 text-left text-xs transition ${
+                    sortBy === option
+                      ? "bg-[#1c222d] font-semibold text-[#ccff00]"
+                      : "text-zinc-300 hover:bg-[#181d26] hover:text-white"
+                  }`}
+                >
+                  {option}
+                </button>
+              ))}
+            </div>
+          )}
         </div>
       </div>
 
       <div className="mt-6">
-        {activeList.length === 0 ? (
+        {sortedList.length === 0 ? (
           <EmptyPlanState tab={activeTab} />
         ) : (
           <div className="space-y-4">
-            {activeList.map((workout) => (
-              <div
+            {sortedList.map((workout) => (
+              <PlanWorkoutCard
                 key={workout.id}
-                className="flex flex-col gap-4 rounded-2xl border border-[#1b2029] bg-[#101319] p-4 sm:flex-row sm:items-center sm:justify-between sm:p-5"
-              >
-                <div className="flex items-center gap-4">
-                  <div className="relative h-16 w-24 shrink-0 overflow-hidden rounded-xl bg-zinc-900 sm:h-20 sm:w-32">
-                    <Image
-                      src={workout.image}
-                      alt={workout.name}
-                      fill
-                      sizes="128px"
-                      className="object-cover"
-                    />
-                  </div>
-                  <div>
-                    <h3 className="font-display text-base font-bold text-white uppercase sm:text-lg">
-                      {workout.name}
-                    </h3>
-                    <p className="mt-0.5 text-xs text-zinc-400">
-                      {workout.equipment}
-                    </p>
-                    <div className="mt-2 flex items-center gap-3 text-xs text-zinc-400">
-                      <div className="flex items-center gap-1">
-                        <LuClock className="h-3.5 w-3.5 text-zinc-500" />
-                        <span>{workout.duration} min</span>
-                      </div>
-                      <div className="flex items-center gap-1">
-                        <LuFlame className="h-3.5 w-3.5 text-zinc-500" />
-                        <span>{workout.caloriesBurned} kcal</span>
-                      </div>
-                      <div className="flex items-center gap-1">
-                        <LuStar className="h-3.5 w-3.5 text-zinc-500" />
-                        <span>{workout.rating}</span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="flex items-center gap-2 self-end sm:self-center">
-                  <Link
-                    href={`/workouts/${workout.id}`}
-                    className="rounded-xl border border-[#252c3b] bg-[#131720] px-4 py-2 text-xs font-semibold text-zinc-300 hover:text-white"
-                  >
-                    View Details
-                  </Link>
-                </div>
-              </div>
+                workout={workout}
+                isSavedTab={activeTab === "saved"}
+              />
             ))}
           </div>
         )}
