@@ -2,14 +2,22 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { LuCalendar, LuBookmark, LuArrowLeft } from "react-icons/lu";
+import { LuCalendar, LuBookmark, LuArrowLeft, LuCheck } from "react-icons/lu";
 import { Workout } from "@/types/workout";
+import { useWorkoutContext } from "@/context/WorkoutContext";
 
 interface WorkoutDetailViewProps {
   workout: Workout;
 }
 
 export default function WorkoutDetailView({ workout }: WorkoutDetailViewProps) {
+  const { addToPlan, saveForLater, isInPlan, isSaved, todayPlan } =
+    useWorkoutContext();
+
+  const inPlan = isInPlan(workout.id);
+  const saved = isSaved(workout.id);
+  const isPlanFull = todayPlan.length >= 5;
+
   const specs = [
     { label: "EQUIPMENT", value: workout.equipment },
     { label: "DIFFICULTY", value: workout.difficulty },
@@ -19,6 +27,14 @@ export default function WorkoutDetailView({ workout }: WorkoutDetailViewProps) {
     { label: "CALORIES", value: `${workout.caloriesBurned} kcal` },
     { label: "RATING", value: workout.rating.toString() },
   ];
+
+  const handleAddToPlan = () => {
+    addToPlan(workout);
+  };
+
+  const handleSaveForLater = () => {
+    saveForLater(workout);
+  };
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
@@ -105,18 +121,46 @@ export default function WorkoutDetailView({ workout }: WorkoutDetailViewProps) {
           <div className="mt-10 flex flex-col gap-3 sm:flex-row">
             <button
               type="button"
-              className="inline-flex flex-1 items-center justify-center gap-2 rounded-xl bg-[#ccff00] px-6 py-3.5 font-display text-xs font-bold tracking-wider text-black uppercase transition hover:bg-[#b8e600] active:scale-95"
+              onClick={handleAddToPlan}
+              disabled={inPlan || (isPlanFull && !inPlan)}
+              className={
+                inPlan
+                  ? "inline-flex flex-1 items-center justify-center gap-2 rounded-xl border border-[#2e4018] bg-[#1b2713] px-6 py-3.5 font-display text-xs font-bold tracking-wider text-[#ccff00] uppercase opacity-90"
+                  : isPlanFull
+                  ? "inline-flex flex-1 items-center justify-center gap-2 rounded-xl bg-zinc-800 px-6 py-3.5 font-display text-xs font-bold tracking-wider text-zinc-500 uppercase cursor-not-allowed"
+                  : "inline-flex flex-1 items-center justify-center gap-2 rounded-xl bg-[#ccff00] px-6 py-3.5 font-display text-xs font-bold tracking-wider text-black uppercase transition hover:bg-[#b8e600] active:scale-95"
+              }
             >
-              <LuCalendar className="h-4 w-4" />
-              <span>Add to today&apos;s plan</span>
+              {inPlan ? (
+                <>
+                  <LuCheck className="h-4 w-4" />
+                  <span>In today&apos;s plan</span>
+                </>
+              ) : isPlanFull ? (
+                <>
+                  <LuCalendar className="h-4 w-4" />
+                  <span>Plan full (5/5)</span>
+                </>
+              ) : (
+                <>
+                  <LuCalendar className="h-4 w-4" />
+                  <span>Add to today&apos;s plan</span>
+                </>
+              )}
             </button>
 
             <button
               type="button"
-              className="inline-flex flex-1 items-center justify-center gap-2 rounded-xl border border-[#2a313e] bg-[#13161d] px-6 py-3.5 font-display text-xs font-bold tracking-wider text-white uppercase transition hover:bg-[#1b1f29] active:scale-95"
+              onClick={handleSaveForLater}
+              disabled={saved}
+              className={
+                saved
+                  ? "inline-flex flex-1 items-center justify-center gap-2 rounded-xl border border-[#35435a] bg-[#141b26] px-6 py-3.5 font-display text-xs font-bold tracking-wider text-zinc-300 uppercase opacity-90"
+                  : "inline-flex flex-1 items-center justify-center gap-2 rounded-xl border border-[#2a313e] bg-[#13161d] px-6 py-3.5 font-display text-xs font-bold tracking-wider text-white uppercase transition hover:bg-[#1b1f29] active:scale-95"
+              }
             >
               <LuBookmark className="h-4 w-4" />
-              <span>Save for later</span>
+              <span>{saved ? "Saved for later" : "Save for later"}</span>
             </button>
           </div>
         </div>
